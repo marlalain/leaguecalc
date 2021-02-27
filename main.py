@@ -3,7 +3,8 @@ import json, requests
 # vars
 version = "11.4.1"
 language = "en_US"
-champions = {}
+champions, datas = {}, {}
+items = []
 urls = {
     'champion': f"http://ddragon.leagueoflegends.com/cdn/{version}/data/{language}/champion/XXX.json",
     'items': f"http://ddragon.leagueoflegends.com/cdn/{version}/data/{language}/item.json"
@@ -44,7 +45,10 @@ class Champion:
 class Item:
     def __init__(self, id):
         self.id = str(id),
-        self.data = import_json(urls['items'])['data'][id]
+        #self.name = import_json(urls['items'])['data'][id]['name']
+        #self.data = import_json(urls['items'])['data'][id]
+        self.data = datas['items'][id]
+        self.name = self.data["name"]
     def get(id, var):
         """Returns an Item variable based on an id
 
@@ -69,6 +73,10 @@ class Item:
             raise ValueError("Min. stat needed is 1, not 0.")
         else:
             return self.data["stats"]
+    def get_id(name):
+        for item in datas['items']:
+            if name == datas['items'][item]["name"]:
+                return item
 
 class Calculator:
     def get_stat_on_level(base_stat, stat_per_level, level):
@@ -77,18 +85,27 @@ class Calculator:
 # defs
 def import_json(url):
     return requests.get(url).json()
-def main():
+def main():    
+    datas.update({
+        'items': import_json(urls['items'])['data']
+    })
     champions.update({
         'twitch': Champion("Twitch")
     })
     champions['twitch'].add_item(Item('1011')) # adding Giant's Belt
-    print(Item('1011').data["name"]) # Item of id 1011 is Giant's Belt
+    #print(Item('1011').data["name"]) # Item of id 1011 is Giant's Belt
     # Twitch's base HP at level 1 is 612:
-    print(champions['twitch'].get_raw_stat_on_level("hp", 1))
+    #print(champions['twitch'].get_raw_stat_on_level("hp", 1))
     # Giant's Belt gives 350 HP
-    print(Item('1011').get_stats()["FlatHPPoolMod"])
+    #print(Item('1011').get_stats()["FlatHPPoolMod"])
     # Calculating base Twitch's stats plus their items:
-    print(champions['twitch'].get_stat_on_level("hp", 1))
+    #print(champions['twitch'].get_stat_on_level("hp", 1))
+
+    for item in datas['items']:
+        items.append(datas['items'][item]["name"])
+    
+    print(Item.get_id("Dagger"))
+    
 # main
 if __name__ == '__main__':
     main()
