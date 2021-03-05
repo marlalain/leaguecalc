@@ -43,16 +43,27 @@ class Champion:
     def _add_item(self, item):
         self.items.append(item)
     def _get_spell(self, spell):
-        if spell == "Q":
-            return self.spells[0]
-        elif spell == "W":
-            return self.spells[1]
-        elif spell == "E":
-            return self.spells[2]
-        elif spell == "R":
-            return self.spells[3]
-        elif spell == "P":
-            return self.data['passive']
+        """Get spell from self.spell
+
+        Args:
+            spell (string): Spells to be returned
+
+        Returns:
+            list or dict: Depending on the number of spells asked, will return the dict or a list of dicts
+        """
+        out = []
+        spell = list(spell)
+        for letter in spell:
+            print('letter', letter)
+            for s in self.spells:
+                if s['id'].find(letter) != -1:
+                    out.append(s)
+        if spell == "P":
+            out.append(self.data['passive'])
+        if len(out) == 1:
+            return out[0]
+        else:
+            return out
     def _get_spells_values(self, value):
         values = []
         # Adding Q/W/E/R spells
@@ -114,11 +125,13 @@ def main():
     })
 
     # Showing all CDRs for a champion
-    print(champions['fiora']._get_spell("E")['name'])
-    print(champions['fiora']._get_spell("E")['cooldownBurn'])
-
-    print(champions['fiora']._get_spells_values('name'))
-    print(champions['fiora']._get_spells_values('description'))
+    #print(champions['fiora']._get_spell("E")['name'])
+    #print(champions['fiora']._get_spell("E")['cooldownBurn'])
+    #print(champions['fiora']._get_spell("R")['name'])
+    #print(champions['fiora']._get_spell("R")['cooldownBurn'])
+    # Showing values for specific spells, e.g. "QE", "QWER", "QWEP", ...
+    for spell in champions['fiora']._get_spell("QE"):
+        print(spell['name'])
 
     # Adding items and calculating new stats
     #champions['twitch'].add_item(Item('1011')) # adding Giant's Belt
