@@ -1,13 +1,12 @@
 # imports
 import json, requests
-# vars
-version = "11.4.1"
-language = "en_US"
-champions, datas = {}, {}
-items = []
+# constants
+VERSION = "11.5.1"
+LANGUAGE = "en_US"
+champions, datas, items = {}, {}, []
 urls = {
-    'champion': f"http://ddragon.leagueoflegends.com/cdn/{version}/data/{language}/champion/XXX.json",
-    'items': f"http://ddragon.leagueoflegends.com/cdn/{version}/data/{language}/item.json"
+    'champion': f"http://ddragon.leagueoflegends.com/cdn/{VERSION}/data/{LANGUAGE}/champion/XXX.json",
+    'items': f"http://ddragon.leagueoflegends.com/cdn/{VERSION}/data/{LANGUAGE}/item.json"
 }
 # classes
 class Champion:
@@ -15,8 +14,9 @@ class Champion:
         self.name = name
         self.url = urls['champion'].replace('XXX', self.name)
         self.data = import_json(self.url)['data'][self.name]
+        self.spells = self.data['spells']
         self.items = []
-    def get_stat_on_level(self, stat, level):
+    def _get_stat_on_level(self, stat, level):
         """Returns a stat on a certain level
 
         Args:
@@ -36,12 +36,32 @@ class Champion:
                 if item_stat.lower().find(stat.lower()) != -1:
                     items = item.get_stats()[item_stat]
         return base + items
-    def get_raw_stat_on_level(self, stat, level):
+    def _get_raw_stat_on_level(self, stat, level):
         base_stat = self.data['stats'][stat]
         stat_per_level = self.data['stats'][f"{stat}perlevel"]
         return base_stat + (stat_per_level * (level - 1))
-    def add_item(self, item):
+    def _add_item(self, item):
         self.items.append(item)
+    def _get_spell(self, spell):
+        if spell == "Q":
+            return self.spells[0]
+        elif spell == "W":
+            return self.spells[1]
+        elif spell == "E":
+            return self.spells[2]
+        elif spell == "R":
+            return self.spells[3]
+        elif spell == "P":
+            return self.data['passive']
+    def _get_spells_values(self, value):
+        values = []
+        # Adding Q/W/E/R spells
+        for spell in self.spells:
+            values.append(spell[value])
+        # Adding passive
+        if value == "name" or value == "description": # TODO add images, better the code
+            values.append(self.data['passive'][value])
+        return values
 class Item:
     def __init__(self, id):
         self.id = str(id),
@@ -79,7 +99,7 @@ class Item:
                 return item
 
 class Calculator:
-    def get_stat_on_level(base_stat, stat_per_level, level):
+    def _get_stat_on_level(base_stat, stat_per_level, level):
         return base_stat + (stat_per_level * (level - 1))
 
 # defs
@@ -90,9 +110,18 @@ def main():
         'items': import_json(urls['items'])['data']
     })
     champions.update({
-        'twitch': Champion("Twitch")
+        'fiora': Champion("Fiora")
     })
-    champions['twitch'].add_item(Item('1011')) # adding Giant's Belt
+
+    # Showing all CDRs for a champion
+    print(champions['fiora']._get_spell("E")['name'])
+    print(champions['fiora']._get_spell("E")['cooldownBurn'])
+
+    print(champions['fiora']._get_spells_values('name'))
+    print(champions['fiora']._get_spells_values('description'))
+
+    # Adding items and calculating new stats
+    #champions['twitch'].add_item(Item('1011')) # adding Giant's Belt
     #print(Item('1011').data["name"]) # Item of id 1011 is Giant's Belt
     # Twitch's base HP at level 1 is 612:
     #print(champions['twitch'].get_raw_stat_on_level("hp", 1))
@@ -100,11 +129,9 @@ def main():
     #print(Item('1011').get_stats()["FlatHPPoolMod"])
     # Calculating base Twitch's stats plus their items:
     #print(champions['twitch'].get_stat_on_level("hp", 1))
-
-    for item in datas['items']:
-        items.append(datas['items'][item]["name"])
-    
-    print(Item.get_id("Dagger"))
+    #for item in datas['items']:
+    #    items.append(datas['items'][item]["name"])
+    #print(Item.get_id("Dagger"))
     
 # main
 if __name__ == '__main__':
