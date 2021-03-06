@@ -1,2 +1,3 @@
 lol_dmg_calc.code-workspace
 .vscode/launch.json
+classes/__pycache__/
